@@ -38,4 +38,4 @@ jobs:
         run: docker push us-central1-docker.pkg.dev/keiba-ai-487108/keiba-ai-repo/web:latest
 
       - name: Update Cloud Run Service
-        run: gcloud beta run jobs update keiba-ai -image us-central1-docker.pkg.dev/keiba-ai-487108/keiba-ai-repo/web:latest --region=us-central1
+        run: gcloud beta run services update keiba-ai --image=us-central1-docker.pkg.dev/keiba-ai-487108/keiba-ai-repo/web:latest --region=us-central1
