@@ -16,4 +16,4 @@ RUN poetry install --no-interaction --no-ansi
 
 EXPOSE 8501
 
-ENTRYPOINT [ "poetry", "run", "streamlit", "run", "src/keiba_ai/web_app.py", "--server.port=8501", "--server.enableCORS=false"]
+ENTRYPOINT [ "poetry", "run", "streamlit", "run", "src/keiba_ai/main.py", "--server.port=8501", "--server.enableCORS=false"]
