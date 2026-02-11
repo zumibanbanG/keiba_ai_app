@@ -29,13 +29,13 @@ jobs:
           service_account: ${{ secrets.GCP_SA_EMAIL }}
 
       - name: Configure Docker for Google Cloud
-      - run: gloud auth configure-docker us-central1-docker.pkg.dev
+        run: gcloud auth configure-docker us-central1-docker.pkg.dev
 
       - name: Docker build
-      - run: docker build -t us-central1-docker.pkg.dev/keiba-ai-487108/keiba-ai-repo/web:latest -f  ./app/keiba_ai/Dockerfile ./app/keiba_ai
+        run: docker build -t us-central1-docker.pkg.dev/keiba-ai-487108/keiba-ai-repo/web:latest -f ./app/keiba_ai/Dockerfile ./app/keiba_ai
 
       - name: Docker push
-      - run: docker push us-central1-docker.pkg.dev/keiba-ai-487108/keiba-ai-repo/web:latest
+        run: docker push us-central1-docker.pkg.dev/keiba-ai-487108/keiba-ai-repo/web:latest
 
       - name: Update Cloud Run Service
-      - run: gcloud beta run jobs update keiba-ai -image us-central1-docker.pkg.dev/keiba-ai-487108/keiba-ai-repo/web:latest --region=us-central1
+        run: gcloud beta run jobs update keiba-ai -image us-central1-docker.pkg.dev/keiba-ai-487108/keiba-ai-repo/web:latest --region=us-central1
