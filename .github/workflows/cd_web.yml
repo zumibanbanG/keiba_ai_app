@@ -1,0 +1,41 @@
+name: Deploy Web Application
+
+on:
+  workflow_dispatch:
+
+  push:
+    branches:
+      - main
+    paths:
+      - 'web/**'
+      - '.github/workflows/cd_web.yml'
+      - 'infra/**'
+
+jobs:
+  deploy:
+    name: Deploy Web Application
+    permissions:
+      contents: read
+      id-token: write
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WIP }}
+          service_account: ${{ secrets.GCP_SA_EMAIL }}
+
+      - name: Configure Docker for Google Cloud
+      - run: gloud auth configure-docker us-central1-docker.pkg.dev
+
+      - name: Docker build
+      - run: docker build -t us-central1-docker.pkg.dev/keiba-ai-487108/keiba-ai-repo/web:latest -f  ./app/keiba_ai/Dockerfile ./app/keiba_ai
+
+      - name: Docker push
+      - run: docker push us-central1-docker.pkg.dev/keiba-ai-487108/keiba-ai-repo/web:latest
+
+      - name: Update Cloud Run Service
+      - run: gcloud beta run jobs update keiba-ai -image us-central1-docker.pkg.dev/keiba-ai-487108/keiba-ai-repo/web:latest --region=us-central1
