@@ -4,7 +4,7 @@ WORKDIR /app
 
 COPY pyproject.toml poetry.lock README.md ./
 
-ENV python -m pip install --upgrade pip && \
+RUN python -m pip install --upgrade pip && \
     pip install poetry --no-cache-dir && \
     poetry config virtualenvs.create false && \
     poetry install --no-interaction --no-ansi --no-root && \
