@@ -7,7 +7,7 @@ on:
     branches:
       - main
     paths:
-      - 'web/**'
+      - 'app/keiba_ai/**'
       - '.github/workflows/cd_web.yml'
       - 'infra/**'
 

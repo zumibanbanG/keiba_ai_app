@@ -7,7 +7,7 @@ on:
     branches:
       - main
     paths:
-      - 'batch/**'
+      - 'app/keiba_collector/**'
       - '.github/workflows/cd_batch.yml'
       - 'infra/**'
 
