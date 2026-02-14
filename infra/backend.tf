@@ -4,7 +4,7 @@ terraform {
   required_providers {
     google = {
         source = "hashicorp/google"
-        version = "7.19.0"
+        version = "7.12.0"
     }
   }
 
@@ -12,9 +12,4 @@ terraform {
     bucket = "keiba-ai-terraform-bucket"
     prefix = "tfstate"
   }
-}
-
-provider "google" {
-  project = local.project_id
-  region  = local.region
 }

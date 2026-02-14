@@ -9,13 +9,13 @@ resource "google_artifact_registry_repository" "this" {
 
 resource "google_cloud_run_v2_service" "web_app" {
   project = local.project_id
-  name     = "web-application"
+  name     = "keiba-ai"
   location = local.region
   deletion_protection = false
 
   template {
     containers {
-      image = "gcr.io/my-project/web-application:latest"
+      image = "us-central1-docker.pkg.dev/keiba-ai-487108/keiba-ai-repo/web:latest"
 
       env {
         name  = "ENVIRONMENT"
@@ -24,7 +24,7 @@ resource "google_cloud_run_v2_service" "web_app" {
 
       resources {
         limits = {
-          memory = "256Mi"
+          memory = "512Mi"
           cpu    = "1"
         }
       }
@@ -48,7 +48,7 @@ resource "google_cloud_run_v2_service_iam_binding" "allow_public_invoker" {
 
 resource "google_cloud_run_v2_job" "batch_job" {
   project = local.project_id
-  name     = "data-processor-job"
+  name     = "keiba-collector"
   location = local.region
   deletion_protection = false
 
@@ -57,7 +57,7 @@ resource "google_cloud_run_v2_job" "batch_job" {
       max_retries = 3
       timeout = "600s"
       containers {
-        image = "gcr.io/my-project/data-processor:latest"
+        image = "us-central1-docker.pkg.dev/keiba-ai-487108/keiba-ai-repo/batch:latest"
 
         env {
           name  = "ENVIRONMENT"
