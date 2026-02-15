@@ -117,7 +117,7 @@ def main():
 
                     # BigQueryにアップロード
                     client = bigquery.Client()
-                    table_id = "keiba-ai-487108.datalake.race_results"
+                    table_id = f"keiba-ai-487108.datalake.race_result_{year}_{place_id}"
                     job_config = bigquery.LoadJobConfig(
                         write_disposition=bigquery.WriteDisposition.WRITE_APPEND,
                     )
