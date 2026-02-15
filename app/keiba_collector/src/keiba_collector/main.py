@@ -25,12 +25,12 @@ def main():
         "09": "阪神", "10": "小倉"
     }
 
-    race_data_all = []
-    race_data_all.append([
+    header = [
         'race_id','馬','騎手','馬番','走破時間','オッズ','通過順','着順',
         '体重','体重変化','性','齢','斤量','上がり','人気',
-        '場名','レース名','日付'
-    ])
+        '場名','日付'
+    ]
+
     place_name = places.get(place_id, "不明")
     for kaiji in range(1, 7 + 1):
         for nichiji in range(1, 13 + 1):
@@ -54,11 +54,13 @@ def main():
                 rows = table.find_all("tr")[1:]  # skip header
                 # レース名・日付を取得
                 try:
-                    title = soup.find("h1").text.strip()
+                    # title = soup.find("h1").text.strip()  # レース名不要
                     date_info = soup.select_one("p.smalltxt").text.strip().split(" ")[0]
                 except:
-                    title = ""
                     date_info = ""
+
+                # 各レースごとにデータを初期化
+                race_data = []
                 for row in rows:
                     cols = row.find_all("td")
                     if len(cols) < 15:
@@ -85,7 +87,7 @@ def main():
                             weight_diff = ""
                         sex = sex_age[0]
                         age = sex_age[1:]
-                        race_data_all.append([
+                        race_data.append([
                             race_id,
                             horse_name,
                             jockey,
@@ -102,7 +104,6 @@ def main():
                             last_3f,
                             pop,
                             place_name,
-                            title,
                             date_info
                         ])
                     except Exception as e:
@@ -110,18 +111,19 @@ def main():
                         continue
                 time.sleep(1)
 
-                # dfに保存して、BigQueryにアップロードする
-                df = pd.DataFrame(race_data_all[1:], columns=race_data_all[0])
+                # データがあればdfに保存して、BigQueryにアップロードする
+                if race_data:
+                    df = pd.DataFrame(race_data, columns=header)
 
-                # BigQueryにアップロード
-                client = bigquery.Client()
-                table_id = "keiba-ai-487108.datalake.race_results"
-                job_config = bigquery.LoadJobConfig(
-                    write_disposition=bigquery.WriteDisposition.WRITE_APPEND,
-                )
-                job = client.load_table_from_dataframe(df, table_id, job_config=job_config)
-                job.result()  # Wait for the job to complete
-                print(f"Uploaded {len(df)} rows to {table_id}")
+                    # BigQueryにアップロード
+                    client = bigquery.Client()
+                    table_id = "keiba-ai-487108.datalake.race_results"
+                    job_config = bigquery.LoadJobConfig(
+                        write_disposition=bigquery.WriteDisposition.WRITE_APPEND,
+                    )
+                    job = client.load_table_from_dataframe(df, table_id, job_config=job_config)
+                    job.result()  # Wait for the job to complete
+                    print(f"Uploaded {len(df)} rows to {table_id}")
                 
 
 if __name__ == "__main__":
