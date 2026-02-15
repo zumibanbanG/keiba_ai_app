@@ -54,14 +54,18 @@ resource "google_cloud_run_v2_job" "batch_job" {
 
   template {
     template {
-      max_retries = 3
-      timeout = "600s"
+      max_retries = 1
+      timeout = "3600s"
       containers {
         image = "us-central1-docker.pkg.dev/keiba-ai-487108/keiba-ai-repo/batch:latest"
 
         env {
-          name  = "ENVIRONMENT"
-          value = ""
+          name  = "YEAR"
+          value = "2023"
+        }
+        env {
+          name  = "PLACE_ID"
+          value = "05"
         }
 
         resources {
