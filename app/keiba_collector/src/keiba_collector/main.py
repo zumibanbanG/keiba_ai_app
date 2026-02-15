@@ -25,7 +25,7 @@ def main():
         "09": "阪神", "10": "小倉"
     }
 
-    header = [
+    columns = [
         'race_id','馬','騎手','馬番','走破時間','オッズ','通過順','着順',
         '体重','体重変化','性','齢','斤量','上がり','人気',
         '場名','日付'
@@ -113,7 +113,7 @@ def main():
 
                 # データがあればdfに保存して、BigQueryにアップロードする
                 if race_data:
-                    df = pd.DataFrame(race_data, columns=header)
+                    df = pd.DataFrame(race_data, columns=columns)
 
                     # BigQueryにアップロード
                     client = bigquery.Client()
