@@ -9,7 +9,7 @@ PLACES = {
 }
 JOB_NAME = "projects/keiba-ai-487108/locations/us-central1/jobs/keiba-collector"
 
-st.title("Keiba Collector ジョブ実行")
+st.title("Keiba Collector")
 
 # 年度選択
 year = st.selectbox("年度を選択", options=[str(y) for y in range(2015, 2027)], index=11)

@@ -14,6 +14,8 @@ COPY src /app/src
 
 RUN poetry install --no-interaction --no-ansi
 
+RUN poetry run playwright install
+
 EXPOSE 8501
 
 ENTRYPOINT [ "poetry", "run", "streamlit", "run", "src/keiba_ai/main.py", "--server.port=8501", "--server.enableCORS=false"]
