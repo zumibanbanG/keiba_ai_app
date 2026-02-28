@@ -4,6 +4,10 @@ resource "google_artifact_registry_repository" "this" {
     repository_id = "keiba-ai-repo"
     format = "DOCKER"
     description = "Artifact Registry for Web Application Docker Images"
+
+    lifecycle {
+      prevent_destroy = true
+    }
 }
 
 

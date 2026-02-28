@@ -92,7 +92,12 @@ if selected_race and selected_race != default_option and shutuba_list:
     with st.spinner("AI predicting..."):
         preds = inference.predict(X)
     st.write("AI Prediction Ranking (Top 3):")
-    pred_df = pd.DataFrame({"Horse": X.index, "Win Probability": preds})
+    # 馬番情報をXから取得
+    pred_df = pd.DataFrame({
+        "Horse": X.index,
+        "Win Probability": preds,
+        "馬番": X["馬番"].values if "馬番" in X.columns else [None]*len(X)
+    })
     pred_df = pred_df.sort_values("Win Probability", ascending=False).reset_index(drop=True)
     top3 = pred_df.head(3)
 
@@ -105,7 +110,7 @@ if selected_race and selected_race != default_option and shutuba_list:
         color = color_map[i] if i < len(color_map) else "#f9f9f9"
         html += f"<div style='background:{color};padding:8px;margin:4px;border-radius:8px;border-bottom:2px solid #aaa;'>"
         html += f"<span style='text-decoration:underline;font-weight:bold;'>{rank}</span> "
-        html += f"{row['Horse']} <span style='float:right;'>Probability: {row['Win Probability']:.2%}</span>"
+        html += f"　{row['馬番']} / {row['Horse']} <span style='float:right;'>Probability: {row['Win Probability']:.2%}</span>"
         html += "</div>"
     html += "</div>"
     st.markdown(html, unsafe_allow_html=True)
