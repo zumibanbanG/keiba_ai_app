@@ -121,7 +121,7 @@ def main():
                     client = bigquery.Client()
                     table_id = f"keiba-ai-487108.datalake.race_result_{year}_{place_id}"
                     job_config = bigquery.LoadJobConfig(
-                        write_disposition=bigquery.WriteDisposition.WRITE_TRUNCATE,
+                        write_disposition=bigquery.WriteDisposition.WRITE_APPEND,
                     )
                     job = client.load_table_from_dataframe(df, table_id, job_config=job_config)
                     job.result()  # Wait for the job to complete
