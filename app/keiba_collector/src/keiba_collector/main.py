@@ -28,7 +28,7 @@ def main():
     columns = [
         'race_id','馬','騎手','馬番','走破時間','オッズ','通過順','着順',
         '体重','体重変化','性','齢','斤量','上がり','人気',
-        '場名','日付'
+        '場名','日付','厩舎'
     ]
 
     place_name = places.get(place_id, "不明")
@@ -87,6 +87,7 @@ def main():
                             weight_diff = ""
                         sex = sex_age[0]
                         age = sex_age[1:]
+                        stable = cols[18].text.strip()
                         race_data.append([
                             race_id,
                             horse_name,
@@ -104,7 +105,8 @@ def main():
                             last_3f,
                             pop,
                             place_name,
-                            date_info
+                            date_info,
+                            stable
                         ])
                     except Exception as e:
                         print(f"Error parsing row: {e}")
@@ -119,7 +121,7 @@ def main():
                     client = bigquery.Client()
                     table_id = f"keiba-ai-487108.datalake.race_result_{year}_{place_id}"
                     job_config = bigquery.LoadJobConfig(
-                        write_disposition=bigquery.WriteDisposition.WRITE_APPEND,
+                        write_disposition=bigquery.WriteDisposition.WRITE_TRUNCATE,
                     )
                     job = client.load_table_from_dataframe(df, table_id, job_config=job_config)
                     job.result()  # Wait for the job to complete
