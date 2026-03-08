@@ -2,6 +2,8 @@ import streamlit as st
 import datetime
 from mylib.get_data import ShutubaScraper
 from mylib.inference import LightGBMInference
+import pandas as pd
+from google.cloud import bigquery
 
 st.title("Keiba AI Application")
 
@@ -17,8 +19,6 @@ today = datetime.date.today()
 
 # カレンダーで日付選択（今日以降のみ）
 selected_date = st.date_input("select date", min_value=today, value=today)
-
-
 
 # 日付ごとにレースリストをキャッシュ（セッション状態）
 if 'last_date' not in st.session_state or st.session_state['last_date'] != selected_date:
@@ -40,6 +40,8 @@ race_id_map = {opt: r['race_id'] for opt, r in zip(race_options[1:], race_list)}
 
 selected_race = st.selectbox("select race", race_options, index=0) if race_options else None
 
+shutuba_list = None
+
 if selected_race and selected_race != default_option:
     selected_race_id = race_id_map[selected_race]
     shutuba_url = f"https://race.netkeiba.com/race/shutuba.html?race_id={selected_race_id}"
@@ -51,16 +53,27 @@ if selected_race and selected_race != default_option:
     else:
         st.write("Failed to fetch race data")
 
-# 推論用のLightGBMモデルをGCSからダウンロードして推論する
-bucket_name = "keiba_ai_models"
-model_blob_path = "lgbm_model.txt"
-inference = LightGBMInference(bucket_name, model_blob_path)
-# ここでshutuba_listを前処理して特徴量Xを作成してから、inference.predict(X)を呼び出す
-features = ['オッズ', '体重', '斤量', '人気', '馬番', '体重変化', '齢']
 
 
-# shutuba_listから特徴量を抽出してXを作成する（eda.ipynbの前処理を参考）
-import pandas as pd
+# 馬_連帯率を、BigQueryから取得する
+def get_hourse_rentai_rate(horse_names):
+
+    client = bigquery.Client()
+    query = f"""
+        select `馬_連対率` from `keiba-ai-487108.dwh.horse_rentai_win_rate`  where `馬` = "{horse_names}"
+    """
+    df = client.query(query).to_dataframe()
+    return df['馬_連対率'].iloc[0] if not df.empty else 0
+
+# 騎手_連対率を、BigQueryから取得する
+def get_jockey_rentai_rate(jockey_names):
+
+    client = bigquery.Client()
+    query = f"""
+        select `騎手_連対率` from `keiba-ai-487108.dwh.jockey_rentai_win_rate`  where `騎手` = "{jockey_names}"
+    """
+    df = client.query(query).to_dataframe()
+    return df['騎手_連対率'].iloc[0] if not df.empty else 0
 
 def preprocess_shutuba_list(shutuba_list, features):
     """
@@ -69,14 +82,13 @@ def preprocess_shutuba_list(shutuba_list, features):
     return: pd.DataFrame (推論用特徴量)
     """
     df = pd.DataFrame(shutuba_list)
-    # 必要なカラムのみ抽出
     df = df.copy()
-    # 「馬名」をインデックスにする
     if "馬名" in df.columns:
         df.set_index("馬名", inplace=True)
-    # 「予想オッズ」→「オッズ」
     if "予想オッズ" in df.columns:
         df.rename(columns={"予想オッズ": "オッズ"}, inplace=True)
+    df["馬_連対率"] = df.index.map(get_hourse_rentai_rate)
+    df["騎手_連対率"] = df["騎手"].map(get_jockey_rentai_rate)
     # 型変換（数値化）
     for col in features:
         if col in df.columns:
@@ -85,13 +97,19 @@ def preprocess_shutuba_list(shutuba_list, features):
             df[col] = float('nan')
     return df[features]
 
-# 推論実行例
-if selected_race and selected_race != default_option and shutuba_list:
-    X = preprocess_shutuba_list(shutuba_list, features)
-    # 推論
+# 推論実行
+if shutuba_list:
     with st.spinner("AI predicting..."):
+        # 推論用のLightGBMモデルをGCSからダウンロードして推論する
+        bucket_name = "keiba_ai_models"
+        model_blob_path = "lgbm_model.txt"
+        inference = LightGBMInference(bucket_name, model_blob_path)
+        # ここでshutuba_listを前処理して特徴量Xを作成してから、inference.predict(X)を呼び出す
+        features = ['オッズ', '体重', '斤量', '人気', '馬番', '体重変化', '齢', '馬_連対率', '騎手_連対率']
+
+        X = preprocess_shutuba_list(shutuba_list, features)
         preds = inference.predict(X)
-    st.write("AI Prediction Ranking (Top 3):")
+    st.write("Prediction Ranking (Top 3):")
     # 馬番情報をXから取得
     pred_df = pd.DataFrame({
         "Horse": X.index,
